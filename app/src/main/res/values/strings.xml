@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Opener</string>
+    <string name="login_welcome">Добро пожаловать</string>
+    <string name="login_btn">login</string>
+    <string name="login_auth">Требуется авторизация</string>
+    <string name="main_title">Выберите адрес</string>
+    <string name="logout_btn">logout</string>
+    <string name="domofon_open">Открыть подъезд</string>
+    <string name="domofon_adapter_open">Открыто</string>
+    <string name="domofon_adapter_unauth">Требуется авторизация</string>
+    <string name="domofon_adapter_server">Сервер недоступен</string>
+    <string name="error_token">Token не получен:</string>
+    <string name="error_data">Данные не получены </string>
+    <string name="update_data">Обновить</string>
+    <string name="progress_load">Loading...</string>
+    <string name="domofon_address">г. Город, ул, Улица, д. 00, п. 0</string>
+</resources>
