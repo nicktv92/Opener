@@ -10,21 +10,22 @@ import net.openid.appauth.AuthState;
 
 import org.json.JSONException;
 
+import demofon.example.com.opener.constants.Constants;
+
 public class AuthStateLogin {
 
-    private static final String AUTH_PREFERENCES_NAME = "AuthStatePreference";
     private static final String AUTH_STATE = "AUTH_STATE";
 
     @NonNull
-    private Context activity;
+    private Context context;
 
-    public AuthStateLogin(@NonNull Context activity) {
-        this.activity = activity;
+    public AuthStateLogin(@NonNull Context context) {
+        this.context = context;
     }
 
     @NonNull
     public AuthState readAuthState() {
-        SharedPreferences authPrefs = activity.getSharedPreferences(AUTH_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        SharedPreferences authPrefs = context.getSharedPreferences(Constants.AUTH_PREFERENCES_NAME, Context.MODE_PRIVATE);
         String stateStr = authPrefs.getString(AUTH_STATE, null);
         if (!TextUtils.isEmpty(stateStr)) {
             try {
@@ -37,14 +38,14 @@ public class AuthStateLogin {
     }
 
     public void writeAuthState(@NonNull AuthState state) {
-        SharedPreferences authPrefs = activity.getSharedPreferences(AUTH_PREFERENCES_NAME, Context.MODE_PRIVATE);
+        SharedPreferences authPrefs = context.getSharedPreferences(Constants.AUTH_PREFERENCES_NAME, Context.MODE_PRIVATE);
         authPrefs.edit()
                 .putString(AUTH_STATE, state.jsonSerializeString())
                 .apply();
     }
 
     public void clearAuthState() {
-        activity.getSharedPreferences(AUTH_PREFERENCES_NAME, Context.MODE_PRIVATE)
+        context.getSharedPreferences(Constants.AUTH_PREFERENCES_NAME, Context.MODE_PRIVATE)
                 .edit()
                 .remove(AUTH_STATE)
                 .apply();

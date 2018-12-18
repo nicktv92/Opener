@@ -13,6 +13,7 @@ import net.openid.appauth.ResponseTypeValues;
 
 import demofon.example.com.opener.BuildConfig;
 import demofon.example.com.opener.MainActivity;
+import demofon.example.com.opener.constants.LoginConstants;
 
 public class AuthBuild {
 
@@ -23,7 +24,7 @@ public class AuthBuild {
         );
         AuthorizationRequest.Builder builder = new AuthorizationRequest.Builder(
                 serviceConfiguration,
-                BuildConfig.API_ID_AUTH,
+                BuildConfig.API_ID_AUTH,  //client id
                 ResponseTypeValues.CODE,
                 LoginConstants.REDIRECT_URI
         );

@@ -1,4 +1,4 @@
-package demofon.example.com.opener.login;
+package demofon.example.com.opener.constants;
 
 import android.net.Uri;
 

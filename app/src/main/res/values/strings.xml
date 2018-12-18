@@ -11,7 +11,11 @@
     <string name="domofon_adapter_server">Сервер недоступен</string>
     <string name="error_token">Token не получен:</string>
     <string name="error_data">Данные не получены </string>
+    <string name="error">Ошибка </string>
     <string name="update_data">Обновить</string>
     <string name="progress_load">Loading...</string>
     <string name="domofon_address">г. Город, ул, Улица, д. 00, п. 0</string>
+
+    <string name="beacon_notification_title">Обнаружен подъезд</string>
+    <string name="action_open">Открыть подъезд</string>
 </resources>

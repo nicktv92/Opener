@@ -1,8 +1,9 @@
 package demofon.example.com.opener.domofon;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,23 +13,23 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import net.openid.appauth.AuthState;
 
 import java.util.List;
 
 import demofon.example.com.opener.R;
+import demofon.example.com.opener.constants.Constants;
 import demofon.example.com.opener.interfaces.CallbackDomofonOpen;
+import demofon.example.com.opener.interfaces.CallbackToken;
 import demofon.example.com.opener.login.AuthStateLogin;
 import demofon.example.com.opener.login.AuthToken;
-import demofon.example.com.opener.interfaces.CallbackToken;
 
 public class DomofonAdapter extends RecyclerView.Adapter<DomofonAdapter.ViewHolder> {
     private List<DomofonList> domofonLists;
     private Context context;
-    private AppCompatActivity activity;
+    private Activity activity;
 
-    public DomofonAdapter(List<DomofonList> domofonLists, Context context, AppCompatActivity activity) {
+    public DomofonAdapter(List<DomofonList> domofonLists, Context context, Activity activity) {
         this.domofonLists = domofonLists;
         this.context = context;
         this.activity = activity;
@@ -45,6 +46,11 @@ public class DomofonAdapter extends RecyclerView.Adapter<DomofonAdapter.ViewHold
     @Override
     public void onBindViewHolder(final ViewHolder holder, final int position) {
         final DomofonList domofonList = domofonLists.get(position);
+        writeDomofonPreference(
+                String.valueOf(position),
+                domofonList.getDomofon(),
+                domofonList.getDomofon_id()
+        );
         holder.address.setText(domofonList.getDomofon());
         holder.layout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -53,6 +59,18 @@ public class DomofonAdapter extends RecyclerView.Adapter<DomofonAdapter.ViewHold
 
             }
         });
+    }
+
+    private void writeDomofonPreference(String position, String domofon, String domofonId) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(
+                Constants.DOMOFON_PREFERENCES_NAME,
+                Context.MODE_PRIVATE
+        );
+        sharedPreferences.edit()
+                .putString(position + "address", domofon)
+                .putString(position + "domofon", domofonId)
+                .putInt("size", getItemCount())
+                .apply();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -98,7 +116,7 @@ public class DomofonAdapter extends RecyclerView.Adapter<DomofonAdapter.ViewHold
             @Override
             public void onError(String error) {
                 setProgress(false, holder);
-                Toast.makeText(context, "Ошибка " + error, Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, context.getString(R.string.error) + error, Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -114,6 +132,7 @@ public class DomofonAdapter extends RecyclerView.Adapter<DomofonAdapter.ViewHold
 
             @Override
             public void onError(String error) {
+                setProgress(false, holder);
                 Toast.makeText(context, context.getString(R.string.error_token) + error, Toast.LENGTH_SHORT).show();
             }
         });

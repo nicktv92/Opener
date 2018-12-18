@@ -10,6 +10,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:name=".beacon.BeaconReferenceApplication"
@@ -30,13 +32,18 @@
             </intent-filter>
         </activity>
         <activity android:name=".MainActivity" />
-        <activity
-            android:name=".beacon.BeaconActivity"
-            android:label="Scanner" />
-        <service android:name="org.altbeacon.beacon.service.BeaconService"
+
+        <service
+            android:name="org.altbeacon.beacon.service.BeaconService"
             tools:node="replace">
-            <meta-data android:name="longScanForcingEnabled" android:value="true"/>
+            <meta-data
+                android:name="longScanForcingEnabled"
+                android:value="true" />
         </service>
+
+        <service
+            android:name=".beacon.OpenDomofonService"
+            android:exported="false" />
     </application>
 
 </manifest>

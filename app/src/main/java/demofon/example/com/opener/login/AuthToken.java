@@ -27,7 +27,7 @@ public class AuthToken {
                     String.valueOf(ex.errorDescription),
                     Toast.LENGTH_SHORT).show();
         } else {
-            ClientAuthentication clientAuth = new ClientSecretPost(BuildConfig.API_KEY_AUTH);
+            ClientAuthentication clientAuth = new ClientSecretPost(BuildConfig.API_KEY_AUTH);  // client secret
             AuthorizationService authService = new AuthorizationService(context);
             authService.performTokenRequest(
                     resp.createTokenExchangeRequest(),
@@ -50,24 +50,24 @@ public class AuthToken {
     public static void refreshToken(final Context context, final AuthState authState, final CallbackToken tokenCallback) {
         new Thread(new Runnable() {
             public void run() {
-        AuthorizationService authService = new AuthorizationService(context);
-        TokenRequest tokenRequest = authState.createTokenRefreshRequest();
-        ClientAuthentication clientAuth = new ClientSecretPost(BuildConfig.API_KEY_AUTH);
-        authService.performTokenRequest(
-                tokenRequest,
-                clientAuth,
-                new AuthorizationService.TokenResponseCallback() {
-                    @Override
-                    public void onTokenRequestCompleted(
-                            TokenResponse resp, AuthorizationException ex) {
-                        if (resp != null) {
-                            authState.update(resp, ex);
-                            tokenCallback.onSuccess(authState);
-                        } else {
-                            tokenCallback.onError(ex.error);
-                        }
-                    }
-                });
+                AuthorizationService authService = new AuthorizationService(context);
+                TokenRequest tokenRequest = authState.createTokenRefreshRequest();
+                ClientAuthentication clientAuth = new ClientSecretPost(BuildConfig.API_KEY_AUTH);   // client secret
+                authService.performTokenRequest(
+                        tokenRequest,
+                        clientAuth,
+                        new AuthorizationService.TokenResponseCallback() {
+                            @Override
+                            public void onTokenRequestCompleted(
+                                    TokenResponse resp, AuthorizationException ex) {
+                                if (resp != null) {
+                                    authState.update(resp, ex);
+                                    tokenCallback.onSuccess(authState);
+                                } else {
+                                    tokenCallback.onError(ex.error);
+                                }
+                            }
+                        });
             }
         }).start();
     }

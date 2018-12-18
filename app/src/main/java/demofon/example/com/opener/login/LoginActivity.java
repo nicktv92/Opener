@@ -18,6 +18,10 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+//        Проверка авторизации пользователя
+//        если пользователь авторизован, вызывается MainActivity
+
         AuthStateLogin stateLogin = new AuthStateLogin(this);
         if (stateLogin.readAuthState().isAuthorized()) {
             Intent intent = new Intent(this, MainActivity.class);
@@ -37,7 +41,6 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
-
     }
 
     private void newAuth() {
