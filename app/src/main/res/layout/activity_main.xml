@@ -68,6 +68,7 @@
         android:id="@+id/domofonBtnBeacon"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-condensed"
         android:padding="16dp"
         android:text="Включить обнаружение"
         app:layout_constraintBottom_toBottomOf="parent"

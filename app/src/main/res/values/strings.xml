@@ -13,9 +13,21 @@
     <string name="error_data">Данные не получены </string>
     <string name="error">Ошибка </string>
     <string name="update_data">Обновить</string>
-    <string name="progress_load">Loading...</string>
+    <string name="progress_load">Загрузка…</string>
     <string name="domofon_address">г. Город, ул, Улица, д. 00, п. 0</string>
 
     <string name="beacon_notification_title">Обнаружен подъезд</string>
     <string name="action_open">Открыть подъезд</string>
+    <string name="menu_setting">Настройки</string>
+    <string name="setting_title">Настройка мониторинга</string>
+    <string name="setting_scan">Период сканирования</string>
+    <string name="setting_btw_scan">Период между сканированиями</string>
+    <string name="setting_rssi">Мощность RSSI для открытия</string>
+    <string name="setting_ms">мс</string>
+    <string name="setting_dbm">dBm</string>
+    <string name="setting_open">Автооткрытие</string>
+    <string name="beacon_setting_toast_set">Настройки установлены</string>
+    <string name="setting_system">Для корректной работы необходимо в системных настройках разрешить
+        автозапуск приложения и отключить контроль активности (если имеется)</string>
+    <string name="setting_btn_system">перейти</string>
 </resources>

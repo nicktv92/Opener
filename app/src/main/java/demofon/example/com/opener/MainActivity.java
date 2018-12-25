@@ -17,6 +17,9 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -33,6 +36,7 @@ import java.util.List;
 import java.util.Objects;
 
 import demofon.example.com.opener.beacon.BeaconReferenceApplication;
+import demofon.example.com.opener.beacon.BeaconSettingActivity;
 import demofon.example.com.opener.constants.Constants;
 import demofon.example.com.opener.domofon.DomofonAdapter;
 import demofon.example.com.opener.domofon.DomofonList;
@@ -84,30 +88,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         );
         boolean enable = sharedPreferences.getBoolean("enableMonitoring", false);
         application = ((BeaconReferenceApplication) this.getApplicationContext());
-        if (!enable) {
-            mBeaconSwitch.setChecked(false);
-            application.disableMonitoring();
-        } else {
-            mBeaconSwitch.setChecked(true);
-        }
-
+        mBeaconSwitch.setChecked(enable);
         mBeaconSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked && BeaconManager.getInstanceForApplication(MainActivity.this).getMonitoredRegions().size() == 0) {
                     checkBluetooth();
-                    application.onCreate();
                     sharedPreferences
                             .edit()
                             .putBoolean("enableMonitoring", true)
                             .apply();
-
+                    application.onCreate();
                 } else {
-                    application.disableMonitoring();
                     sharedPreferences
                             .edit()
                             .putBoolean("enableMonitoring", false)
                             .apply();
+                    application.disableMonitoring();
                 }
             }
         });
@@ -266,5 +263,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mProgressDialog.show();
         }
         if (!progress) mProgressDialog.dismiss();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.new_setting:
+                Intent intent = new Intent(this, BeaconSettingActivity.class);
+                startActivity(intent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }

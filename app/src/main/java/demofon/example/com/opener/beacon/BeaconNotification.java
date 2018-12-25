@@ -2,6 +2,7 @@ package demofon.example.com.opener.beacon;
 
 import android.annotation.TargetApi;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -42,8 +43,17 @@ public class BeaconNotification {
                 .addAction(
                         R.drawable.ic_lock_open,
                         res.getString(R.string.action_open),
-                       openIntent)
+                        openIntent)
                 .setAutoCancel(true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel("opener",
+                    "Opener", NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription("Open the door");
+            NotificationManager notificationManager = (NotificationManager) context.getSystemService(
+                    Context.NOTIFICATION_SERVICE);
+            notificationManager.createNotificationChannel(channel);
+            builder.setChannelId(channel.getId());
+        }
         notify(context, builder.build());
     }
 

@@ -32,7 +32,9 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
     private RegionBootstrap regionBootstrap;
     private BackgroundPowerSaver backgroundPowerSaver;
     private BeaconManager beaconManager;
-    private boolean isNotify, isOpen;
+    private boolean isNotify, isOpen, mOpenSet;
+    private long mScanPeriod, mBtwScanPeriod;
+    private int mDistance;
     private static final String TAG = "BeaconReferenceApp";
 
     public void onCreate() {
@@ -40,6 +42,7 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         Log.d(TAG, "onCreate");
         isNotify = false;
         isOpen = false;
+        getSettingPreferenceValue();
 
 //        первичная настройка beaconManager,
 //        по умолчанию производится поиск AltBeacon,
@@ -52,12 +55,12 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
 
         beaconManager.setDebug(true);
 
-//        настройка оповещения о включенном мониторинге маяков
-//        и включение foreground service для продолжительного сканирования
+//          настройка оповещения о включенном мониторинге маяков
+//          и включение foreground service для продолжительного сканирования
 
         Notification.Builder builder = new Notification.Builder(this);
         builder.setSmallIcon(R.drawable.ic_lock);
-        builder.setContentTitle("Поиск beacons");
+        builder.setContentTitle("Поиск доступных подъездов");
         Intent intent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
@@ -67,7 +70,7 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel("opener",
                     "Opener", NotificationManager.IMPORTANCE_DEFAULT);
-            channel.setDescription("Open th door");
+            channel.setDescription("Open the door");
             NotificationManager notificationManager = (NotificationManager) getSystemService(
                     Context.NOTIFICATION_SERVICE);
             notificationManager.createNotificationChannel(channel);
@@ -75,17 +78,26 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         }
         beaconManager.enableForegroundServiceScanning(builder.build(), 456);
 
-//        отключение JobScheduler (важно в Android 8+) для продолжительного фонового сканирования
+//          отключение JobScheduler (важно в Android 8+) для продолжительного фонового сканирования
 
         beaconManager.setEnableScheduledScanJobs(false);
-
+        BeaconManager.setAndroidLScanningDisabled(true);
 //        BeaconManager.setRegionExitPeriod(20000L);
-//        backgroundPowerSaver = new BackgroundPowerSaver(this);
+        backgroundPowerSaver = new BackgroundPowerSaver(this);
 
         beaconManager.setBackgroundMode(true);
-        beaconManager.setBackgroundBetweenScanPeriod(4000L);
-        beaconManager.setBackgroundScanPeriod(1300L);
+        beaconManager.setBackgroundBetweenScanPeriod(mBtwScanPeriod);
+        beaconManager.setBackgroundScanPeriod(mScanPeriod);
 
+        SharedPreferences sharedPreferences = getSharedPreferences(
+                Constants.DOMOFON_PREFERENCES_NAME,
+                Context.MODE_PRIVATE
+        );
+        boolean enable = sharedPreferences.getBoolean("enableMonitoring", false);
+        if (enable) enableMonitoring();
+    }
+
+    public void enableMonitoring() {
 //        Настройка региона сканирования, при обнаружении маяка с заданным ID, приложение пробудится
 
         Region region = new Region("backgroundRegion",
@@ -102,30 +114,31 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
 
     @Override
     public void didEnterRegion(Region region) {
-
-//        маяк с заданным ID обнаружен, запускается ранжирование
-
         Log.d(TAG, "didEnterRegion " + region.getUniqueId());
+//        маяк с заданным UUID обнаружен, запускается ранжирование
+
         beaconManager.addRangeNotifier(this);
         try {
             beaconManager.startRangingBeaconsInRegion(region);
+            beaconManager.setBackgroundBetweenScanPeriod(0);        //установка новых периодов
+            beaconManager.setBackgroundScanPeriod(1100L);           //для частого сканирования
         } catch (RemoteException e) {
-            Log.d(TAG, "didEnterRegionNo");
+            Log.d(TAG, "didEnterRegionException " + e);
         }
     }
 
     @Override
     public void didExitRegion(Region region) {
-
-//        маяк с заданным ID потерян, ранжирование останавливается
-
         Log.d(TAG, "didExitRegion" + region.getUniqueId());
+//        маяк с заданным UUID потерян, ранжирование останавливается
+
         try {
             beaconManager.stopRangingBeaconsInRegion(region);
             cancelNotification();
             isOpen = false;
+            setNewSetting();                                        //возврат периода сканирования из настроек
         } catch (RemoteException e) {
-            Log.d(TAG, "didExitRegionNo");
+            Log.d(TAG, "didExitRegionException " + e);
         }
     }
 
@@ -136,13 +149,12 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
 
     @Override
     public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-
+        Log.d(TAG, "didRangeBeaconsInRegion");
 //        ранжирование найденных маяков
 //        если параметр Major обнаруженного маяка соотвествует какому-либо domofon_id из списка
 //        пользователь получает оповещение, с возможностью открыть подъезд,
 //        либо запустится OpenDomofonService, если пользователь подойдет ближе заданного расстояния
 
-        Log.d(TAG, "didRangeBeaconsInRegion");
         if (beacons.size() > 0) {
             SharedPreferences sharedPreferences = getSharedPreferences(
                     Constants.DOMOFON_PREFERENCES_NAME,
@@ -155,7 +167,7 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
                     String address = sharedPreferences.getString(i + "address", null);
                     if (beacon.getId2().toString().equals(domofonId)) {
                         sendNotification(address, domofonId);
-                        if (beacon.getDistance() < Constants.DISTANCE_TO_OPEN && !isOpen) {
+                        if (!isOpen && mOpenSet && beacon.getRssi() > mDistance) {
                             Intent intent = new Intent(this, OpenDomofonService.class);
                             intent.putExtra("domofon", domofonId);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -183,5 +195,22 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
     private void cancelNotification() {
         BeaconNotification.cancel(this);
         isNotify = false;
+    }
+
+    public void setNewSetting() {
+        getSettingPreferenceValue();
+        beaconManager.setBackgroundBetweenScanPeriod(mBtwScanPeriod);
+        beaconManager.setBackgroundScanPeriod(mScanPeriod);
+    }
+
+    public void getSettingPreferenceValue() {
+        SharedPreferences sp = getSharedPreferences(
+                Constants.SETTING_PREFERENCES_NAME,
+                Context.MODE_PRIVATE
+        );
+        mScanPeriod = Long.valueOf(sp.getString(Constants.SETTING_SCAN_VALUE, Constants.SETTING_SCAN_VALUE_DEF));
+        mBtwScanPeriod = Long.valueOf(sp.getString(Constants.SETTING_SCAN_BTW_VALUE, Constants.SETTING_SCAN_BTW_VALUE_DEF));
+        mDistance = Integer.valueOf(sp.getString(Constants.SETTING_SCAN_DISTANCE_VALUE, Constants.SETTING_SCAN_DISTANCE_VALUE_DEF));
+        mOpenSet = sp.getBoolean(Constants.SETTING_SWITCH_VALUE, Constants.SETTING_SWITCH_VALUE_DEF);
     }
 }
